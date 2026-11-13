@@ -62,7 +62,9 @@ def cmd_render():
         key = f"v{k:02d}"
         if key in s["videos"] and s["videos"][key].get("post_id"): continue
         if k not in V: print(f"# {key}: rekaman ada, naskah belum ada di scripts.py", file=sys.stderr); continue
-        r = subprocess.run([sys.executable, os.path.join(YT, "render.py"), str(k), path, "--voice", "own",
+        mk = os.path.join(AUD, f"v{k:02d}.voice")
+        voice = open(mk).read().strip() if os.path.exists(mk) else "own"
+        r = subprocess.run([sys.executable, os.path.join(YT, "render.py"), str(k), path, "--voice", voice,
                             "--out", os.path.join(YT, "_out")], capture_output=True, text=True)
         if r.returncode: print(f"# {key}: render gagal\n{r.stderr[-1500:]}", file=sys.stderr); continue
         slug = V[k]["slug"]; o = os.path.join(YT, "_out")
@@ -72,7 +74,8 @@ def cmd_render():
         ent = s["videos"].get(key, {})
         ent.update(slug=slug, slot=ent.get("slot") or next_slot(s), duration=meta["duration"])
         s["videos"][key] = ent; save(s)
-        ready.append(dict(key=key, slot=ent["slot"], video_url=RAW + f"media/yt/{slug}.mp4",
+        ent["voice"] = voice; save(s)
+        ready.append(dict(key=key, voice=voice, is_ai_generated=(voice != "own"), slot=ent["slot"], video_url=RAW + f"media/yt/{slug}.mp4",
                           thumb_url=RAW + f"media/yt/{slug}_thumb.jpg", title=meta["title"],
                           description=meta["description"], tags=meta["tags"], duration=meta["duration"]))
     print(json.dumps(ready, ensure_ascii=False, indent=1))

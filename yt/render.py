@@ -124,6 +124,7 @@ def slide(v, si, nshow, voice):
     d.line([(110, H - 120), (W - 110, H - 120)], fill=(52, 70, 104), width=2)
     foot = "Konten edukasi literasi digital · bukan pernyataan resmi instansi mana pun"
     if voice == "ai": foot += " · narasi suara AI"
+    if voice == "clone": foot += " · narasi: suara kloning AI pemilik channel"
     d.text((110, H - 95), foot, font=F(26, "Medium"), fill=MUTED)
     d.text((W - 110 - d.textlength(f"{si+1}/{n}", font=F(26)), H - 95), f"{si+1}/{n}", font=F(26), fill=MUTED)
     return img
@@ -153,7 +154,7 @@ def ts(sec):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("no", type=int); ap.add_argument("audio")
-    ap.add_argument("--voice", default="own", choices=["own", "ai"])
+    ap.add_argument("--voice", default="own", choices=["own", "ai", "clone"])
     ap.add_argument("--first", type=int, default=0, help="uji: hanya N segmen pertama")
     ap.add_argument("--out", default=os.path.join(os.path.dirname(os.path.abspath(__file__)), "_out"))
     a = ap.parse_args()
@@ -166,7 +167,7 @@ def main():
     af = ("silenceremove=start_periods=1:start_threshold=-45dB:start_silence=0.3,"
           "areverse,silenceremove=start_periods=1:start_threshold=-45dB:start_silence=0.6,areverse,"
           "highpass=f=80,afftdn=nf=-25,loudnorm=I=-14:TP=-1.5:LRA=11")
-    if a.voice == "ai":
+    if a.voice in ("ai", "clone"):
         af = "loudnorm=I=-14:TP=-1.5:LRA=11"
     run(["ffmpeg", "-y", "-hide_banner", "-i", a.audio, "-af", af, "-ar", "48000", "-ac", "2",
          "-c:a", "aac", "-b:a", "192k", clean])
@@ -195,8 +196,9 @@ def main():
     # 3. deskripsi dengan bab waktu (bab pertama 00:00, minimal 10 detik per bab)
     ch = [c for i, c in enumerate(chapters) if i == 0 or c[0] - chapters[i-1][0] >= 10]
     chap = "\n".join(f"{ts(t)} {name}" for t, name in ch)
-    voice_note = ("Narasi dibacakan langsung oleh pemilik channel." if a.voice == "own"
-                  else "Narasi menggunakan suara sintetis AI.")
+    voice_note = {"own": "Narasi dibacakan langsung oleh pemilik channel.",
+                  "clone": "Narasi dibuat dengan suara kloning AI dari suara pemilik channel, atas izin dan naskah pemilik channel sendiri.",
+                  "ai": "Narasi menggunakan suara sintetis AI."}[a.voice]
     desc = (f"{v['intro']}\n\nDi video ini:\n{chap}\n\n{v['links']}\n\n{v['refs']}\n\n"
             f"Konten edukasi literasi digital, bukan pernyataan resmi instansi mana pun. {voice_note}\n\n{v['hashtags']}")
     meta = dict(title=v["title"], description=desc, tags=v["tags"], duration=round(duration(mp4), 1),

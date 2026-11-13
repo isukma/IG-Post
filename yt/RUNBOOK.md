@@ -30,7 +30,20 @@ Dokumen strategi: Claude Docs "YouTube @15ukma — Positioning, 30 Ide Video..."
    - Kirim notifikasi ke pemilik: naskah mana yang siap direkam dan tautan PDF-nya (`https://github.com/isukma/IG-Post/blob/main/yt/...`).
 5. **Laporan singkat**: video yang terjadwal (tanggal/jam), rekaman yang ditunggu, naskah baru. Bila slot hari ini/besok kosong karena belum ada rekaman, sebutkan dengan jelas.
 
+## Narasi suara kloning (berlaku begitu tersedia)
+Pemilik ingin narasi otomatis dengan suara kloningnya sendiri. Kloning dibuat oleh pemilik di akun ElevenLabs-nya. Sampel suara TIDAK PERNAH disimpan di repo publik ini.
+Syarat SEBELUM dipakai, cek setiap putaran:
+1. `creative_list_voices` (ElevenLabs) menampilkan suara kloning milik pemilik (nama mengandung "15ukma", "Indra", atau "Sukma", kategori cloned/instant), DAN
+2. paket ElevenLabs sudah berbayar (Starter/Creator/Pro), karena paket Free tidak berlisensi komersial. Bila `creative_generate_speech` menolak dengan pesan "Free generations", anggap belum berbayar: hentikan jalur ini dan laporkan.
+Bila kedua syarat terpenuhi, untuk setiap naskah yang belum punya rekaman di `yt-audio/`:
+- Pecah narasi `V[n]` menjadi dua bagian di batas segmen (masing-masing < 4.900 karakter), gabungkan segmen dengan `<break time="1.5s" />`.
+- `creative_generate_speech` dengan voice_id kloning, `model_id` `eleven_multilingual_v2` (fallback `eleven_flash_v2_5` bila kredit menipis), `generations_count` 1. Ambil URL lewat `creative_get_flow_run_status`, unduh dengan curl.
+- Sambung bagian A + hening 1,5 detik + bagian B menjadi `yt-audio/vNN.mp3`, tulis `clone` ke `yt-audio/vNN.voice`, lalu lanjut ke langkah 2 (render-pending).
+- Di Metricool set `youtubeData.isAiGeneratedContent: true` untuk video berstatus `voice: clone`.
+- Hemat kredit: produksi paling banyak 3 video per putaran, prioritaskan slot terdekat.
+
 ## Larangan
-- Jangan pernah memakai suara AI untuk video tayang (pilihan pemilik: suara sendiri; paket ElevenLabs gratis tidak berlisensi komersial).
+- Jangan memakai suara AI generik (bukan kloning pemilik) untuk video tayang. Jangan memakai paket ElevenLabs Free untuk video tayang.
+- Jangan pernah menyimpan sampel suara pemilik di repo ini.
 - Jangan mengunggah ulang video yang sudah punya `post_id`.
 - Jangan menghapus rekaman di `yt-audio/`.
