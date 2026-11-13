@@ -7,7 +7,7 @@
                                               cetak JSON berisi URL raw GitHub + metadata untuk Metricool
   python3 yt/pipeline.py mark vNN <metricool_post_id>   -> catat bahwa vNN sudah terjadwal di Metricool
 
-Aturan slot: setiap video mengambil slot kosong paling awal yang waktunya >= sekarang + 90 menit.
+Aturan slot: setiap video mengambil slot kosong paling awal yang waktunya >= sekarang + 45 menit.
 Slot dasar: 13 Nov 2026 19.00 WIB, lalu setiap hari 16.00 WIB (puncak audiens YouTube menurut Metricool).
 """
 import json, os, re, subprocess, sys, shutil, glob, datetime as dt
@@ -33,7 +33,7 @@ def base_slots(n=60):
 
 def next_slot(state):
     taken = {v["slot"] for v in state["videos"].values() if v.get("slot")}
-    floor = dt.datetime.now(WIB) + dt.timedelta(minutes=90)
+    floor = dt.datetime.now(WIB) + dt.timedelta(minutes=45)
     for s in base_slots():
         iso = s.isoformat()
         if s >= floor and iso not in taken: return iso
